@@ -23,25 +23,28 @@ public class GlobalExceptionHandler {
         .body(exp.getMessage());
   }
 
-  @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exp) {
-    var errors = new HashMap<String, String>();
-    exp.getBindingResult().getAllErrors()
-            .forEach(error -> {
-              var fieldName = ((FieldError) error).getField();
-              var errorMessage = error.getDefaultMessage();
-              errors.put(fieldName, errorMessage);
-            });
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exp) {
+        var errors = new HashMap<String, String>();
+        exp.getBindingResult().getAllErrors()
+                .forEach(error -> {
+                    var fieldName = ((FieldError) error).getField();
+                    var errorMessage = error.getDefaultMessage();
+                    errors.put(fieldName, errorMessage);
+                });
 
-    return ResponseEntity
-            .status(BAD_REQUEST)
-            .body(new ErrorResponse(errors));
-  }
+        ErrorResponse errorResponse = new ErrorResponse(errors);
+        return ResponseEntity
+                .status(BAD_REQUEST)
+                .body(errorResponse);
+    }
 
-  @ExceptionHandler(BusinessException.class)
-  public ResponseEntity<String> handle(BusinessException exp) {
-    return ResponseEntity
-        .status(HttpStatus.BAD_REQUEST)
-        .body(exp.getMsg());
-  }
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handle(BusinessException exp) {
+        var errors = new HashMap<String, String>();
+        errors.put("message", exp.getMsg());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(errors));
+    }
 }
